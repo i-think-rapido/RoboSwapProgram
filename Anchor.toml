@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-robo_swap_program = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+robo_swap_program = "832zoit2PaRDGBUgJCfcgdryXDaXokcbR4SYf37dpMDc"
 
 [registry]
 url = "https://api.apr.dev"

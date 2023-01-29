@@ -46,12 +46,11 @@ describe("robo-swap-program", () => {
         expect(robot.wallet.toBase58()).to.equal(robber.toBase58())
         expect(robot.owner.toBase58()).to.equal(robber.toBase58())
         expect(robot.idx).to.equal(d)
-        expect(robot.ownerIdx).to.equal(d)
-        expect(robot.swaps).to.equal(0)
+        expect(robot.stolen).to.equal(0)
       })
     });
   
-    it("Swap!", async () => {
+    it("Steal!", async () => {
   
       const keypair = Keypair.generate()
       await createAccount(keypair, provider)
@@ -61,9 +60,15 @@ describe("robo-swap-program", () => {
       const robberIdx = 3;
       const victimIdx = 8;
   
+      {
+        let r = (await program.account.game.fetch(robberPDA)).robots[robberIdx]
+        let v = (await program.account.game.fetch(victimPDA)).robots[victimIdx]
+        expect(r.stolen).to.equal(0)
+        expect(v.stolen).to.equal(0)
+      }
       try {
         await program.methods
-          .swap(victimIdx, robberIdx)
+          .steal(robberIdx, victimIdx)
           .accounts({
             robber,
             robberPda: robberPDA,
@@ -79,10 +84,12 @@ describe("robo-swap-program", () => {
 
       let r = (await program.account.game.fetch(robberPDA)).robots[robberIdx]
       let v = (await program.account.game.fetch(victimPDA)).robots[victimIdx]
-      expect(v.ownerIdx).to.equal(robberIdx)
-      expect(r.ownerIdx).to.equal(victimIdx)
+      expect(v.idx).to.equal(robberIdx)
+      expect(r.idx).to.equal(victimIdx)
       expect(v.owner.toBase58()).to.equal(robber.toBase58())
       expect(r.owner.toBase58()).to.equal(victim.toBase58())
+      expect(r.stolen).to.equal(1)
+      expect(v.stolen).to.equal(0)
   
       await program.methods.delete().accounts({receiver: victim, pda: victimPDA}).rpc()
     });

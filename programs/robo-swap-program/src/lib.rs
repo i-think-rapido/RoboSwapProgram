@@ -22,21 +22,56 @@ pub mod robo_swap_program {
         Ok(())
     }
 
-    pub fn steal(ctx: Context<Swap>, robber_idx: u8, victim_idx: u8) -> Result<()> {
+    pub fn steal(ctx: Context<Steal>, robber_idx: u8, victim_idx: u8) -> Result<()> {
         
         require!(robber_idx <= 25, game::RoboSwapError::IndexOutOfBounds);
         require!(victim_idx <= 25, game::RoboSwapError::IndexOutOfBounds);
 
-        let r = &mut ctx.accounts.robber_pda.robots[robber_idx as usize];
-        let v = &mut ctx.accounts.victim_pda.robots[victim_idx as usize];
 
-        let helper = r.owner;
-        r.owner = v.owner;
-        v.owner = helper;
+        if ctx.accounts.robber_pda.key() == ctx.accounts.victim_pda.key() {
 
-        let helper = r.idx;
-        r.idx = v.idx;
-        v.idx = helper;
+            let v = &mut ctx.accounts.victim_pda;
+    
+            let helper = v.robots[robber_idx as usize].owner;
+            v.robots[robber_idx as usize].owner = v.robots[victim_idx as usize].owner;
+            v.robots[victim_idx as usize].owner = helper;
+    
+            let helper = v.robots[robber_idx as usize].idx;
+            v.robots[robber_idx as usize].idx = v.robots[victim_idx as usize].idx;
+            v.robots[victim_idx as usize].idx = helper;
+
+            let helper = v.robots[robber_idx as usize].stolen;
+            v.robots[robber_idx as usize].stolen = v.robots[victim_idx as usize].stolen;
+            v.robots[victim_idx as usize].stolen = helper;
+
+            if v.robots[robber_idx as usize].stolen != u32::MAX {
+                v.robots[robber_idx as usize].stolen += 1;
+            }
+    
+        }
+        else {
+
+            let r = &mut ctx.accounts.robber_pda.robots[robber_idx as usize];
+            let v = &mut ctx.accounts.victim_pda.robots[victim_idx as usize];
+    
+            let helper = r.owner;
+            r.owner = v.owner;
+            v.owner = helper;
+    
+            let helper = r.idx;
+            r.idx = v.idx;
+            v.idx = helper;
+    
+            let helper = r.stolen;
+            r.stolen = v.stolen;
+            v.stolen = helper;
+    
+            if r.stolen != u32::MAX {
+                r.stolen += 1;
+            }
+    
+        }
+
 
         Ok(())
     }
@@ -76,7 +111,7 @@ pub struct Initialize<'info> {
 }
 
 #[derive(Accounts)]
-pub struct Swap<'info> {
+pub struct Steal<'info> {
     pub system_program: Program<'info, System>,
 
     #[account(mut)]

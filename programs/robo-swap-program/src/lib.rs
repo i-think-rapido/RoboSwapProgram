@@ -1,7 +1,7 @@
 
 use anchor_lang::prelude::*;
 
-declare_id!("832zoit2PaRDGBUgJCfcgdryXDaXokcbR4SYf37dpMDc");
+declare_id!("23vjhFWh1dfDNzcsKZCdXt5XQdJSFipZaBncVpGrZmGw");
 
 #[program]
 pub mod robo_swap_program {
@@ -16,7 +16,7 @@ pub mod robo_swap_program {
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         for idx in 0..game::ROBOTS {
             let robot = &mut ctx.accounts.pda.robots[idx];
-            *robot = game::Robot::new(ctx.accounts.user.key(), idx as u8)?;
+            *robot = game::Robots::new(ctx.accounts.user.key(), idx as u8)?;
         }
         ctx.accounts.pda.bump = *ctx.bumps.get("pda").unwrap_or_else(|| panic!("hundt"));
         Ok(())
@@ -109,19 +109,19 @@ mod game {
 
     #[account]
     pub struct Game {
-        pub robots: [Robot; ROBOTS],
+        pub robots: [Robots; ROBOTS],
         pub bump: u8,
     }
     impl Game {}
 
     #[derive(AnchorSerialize, AnchorDeserialize, Default, Clone, Copy, PartialEq, Eq)]
-    pub struct Robot {
+    pub struct Robots {
         pub wallet: Pubkey,
         pub owner: Pubkey,
         pub idx: u8,
         pub stolen: u32,
     }
-    impl Robot {
+    impl Robots {
         pub fn new(wallet: Pubkey, idx: u8) -> Result<Self> {
             require!(idx <= 25, RoboSwapError::IndexOutOfBounds);
             Ok(Self {

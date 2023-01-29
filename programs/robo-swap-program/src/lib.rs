@@ -22,7 +22,7 @@ pub mod robo_swap_program {
         Ok(())
     }
 
-    pub fn swap(ctx: Context<Swap>, victim_idx: u8, robber_idx: u8) -> Result<()> {
+    pub fn steal(ctx: Context<Swap>, robber_idx: u8, victim_idx: u8) -> Result<()> {
         
         require!(robber_idx <= 25, game::RoboSwapError::IndexOutOfBounds);
         require!(victim_idx <= 25, game::RoboSwapError::IndexOutOfBounds);
@@ -34,9 +34,9 @@ pub mod robo_swap_program {
         r.owner = v.owner;
         v.owner = helper;
 
-        let helper = r.owner_idx;
-        r.owner_idx = v.owner_idx;
-        v.owner_idx = helper;
+        let helper = r.idx;
+        r.idx = v.idx;
+        v.idx = helper;
 
         Ok(())
     }
@@ -115,12 +115,11 @@ mod game {
     impl Game {}
 
     #[derive(AnchorSerialize, AnchorDeserialize, Default, Clone, Copy, PartialEq, Eq)]
-    pub     struct Robot {
+    pub struct Robot {
         pub wallet: Pubkey,
         pub owner: Pubkey,
         pub idx: u8,
-        pub owner_idx: u8,
-        pub swaps: u32,
+        pub stolen: u32,
     }
     impl Robot {
         pub fn new(wallet: Pubkey, idx: u8) -> Result<Self> {
@@ -129,8 +128,7 @@ mod game {
                 owner: wallet.clone(),
                 wallet,
                 idx,
-                owner_idx: idx,
-                swaps: 0,
+                stolen: 0,
             })
         }
     }
@@ -140,6 +138,4 @@ mod game {
         IndexOutOfBounds,
         UserAndAccountNotEqual,
     }
-
-
 }

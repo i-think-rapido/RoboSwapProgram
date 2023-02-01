@@ -19,6 +19,7 @@ pub mod robo_swap_program {
             *robot = game::Robots::new(ctx.accounts.user.key(), idx as u8)?;
         }
         ctx.accounts.pda.bump = *ctx.bumps.get("pda").unwrap_or_else(|| panic!("hundt"));
+        ctx.accounts.pda.marker = "RoboSwap".as_bytes()[..8].try_into().unwrap();
         Ok(())
     }
 
@@ -139,11 +140,13 @@ mod game {
     use anchor_lang::{prelude::Pubkey, account};
 
     pub const ROBOTS: usize = 26;
-    pub const ROBOT_SIZE: usize = 70;
-    pub const GAME_SIZE: usize = ROBOT_SIZE * ROBOTS + 1;
+    pub const MARKER_SIZE: usize = 8;
+    pub const ROBOT_SIZE: usize = 69;
+    pub const GAME_SIZE: usize = MARKER_SIZE + ROBOT_SIZE * ROBOTS + 1;
 
     #[account]
     pub struct Game {
+        pub marker: [u8; 8],
         pub robots: [Robots; ROBOTS],
         pub bump: u8,
     }
